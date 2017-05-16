@@ -2,6 +2,8 @@ DESCRIPTION = "USB DVB Driver for OPTI-Combo Tuner"
 
 require conf/license/license-gplv2.inc
 
+inherit allarch
+
 RRECOMMENDS_${PN} = " \
 	kernel-module-dvb-usb-dvbsky \
 	kernel-module-dvb-usb-v2 \
