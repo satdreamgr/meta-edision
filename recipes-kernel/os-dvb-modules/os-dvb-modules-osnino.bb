@@ -1,5 +1,5 @@
 KV = "4.8.17"
-SRCDATE = "20171019"
+SRCDATE = "20171027"
 MODNAMES = "linuxdvb"
 
 require os-dvb-modules.inc
@@ -10,5 +10,5 @@ COMPATIBLE_MACHINE = "osnino"
 
 RDEPENDS_${PN}_remove = "firmware-mn8847x"
 
-SRC_URI[md5sum] = "ccc102a2c69d6f08e7d0d59035104266"
-SRC_URI[sha256sum] = "edf420c2aa54a30bc32481259f815acb94e447042c98765c7ec40cef19d56735"
+SRC_URI[md5sum] = "42bed4babfd6ed54291f51a86c5dc580"
+SRC_URI[sha256sum] = "5426f16b9e47cc6822483b0a11db74bdfdbdb824f3985b681aa81417ad937f24"
