@@ -1,7 +1,15 @@
 require linux-os.inc
 
+PR = "r1"
+
 SRC_URI = "http://source.mynonpublic.com/edision/linux-edision-${PV}.tar.xz \
 	file://defconfig \
+	file://0001-Support-TBS-USB-drivers-for-4.6-kernel.patch \
+	file://0001-TBS-fixes-for-4.6-kernel.patch \
+	file://0001-STV-Add-PLS-support.patch \
+	file://0001-STV-Add-SNR-Signal-report-parameters.patch \
+	file://blindscan2.patch \
+	file://0001-stv090x-optimized-TS-sync-control.patch \
 	"
 
 COMPATIBLE_MACHINE = "osnino"
