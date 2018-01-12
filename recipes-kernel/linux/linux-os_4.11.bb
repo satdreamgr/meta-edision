@@ -3,6 +3,14 @@ require linux-os.inc
 SRC_URI = "${KERNELORG_MIRROR}/linux/kernel/v4.x/linux-${PV}.tar.xz;name=kernel \
 	https://github.com/edision-open/edision-kernel/releases/download/v${PV}/edision-kernel-${PV}.patch.xz;apply=yes;name=kernelpatch \
 	file://defconfig \
+	file://TBS-fixes-for-4.11-kernel.patch \
+	file://0001-STV-Add-PLS-support.patch \
+	file://0001-STV-Add-SNR-Signal-report-parameters.patch \
+	file://0001-stv090x-optimized-TS-sync-control.patch \
+	file://blindscan2.patch \
+	file://0001-Support-TBS-USB-drivers.patch \
+	file://0001-TBS-fixes-for-4.3-kernel.patch \
+	file://tbs_ci.patch \
 	"
 
 COMPATIBLE_MACHINE = "osmega|osmini|osminiplus"
