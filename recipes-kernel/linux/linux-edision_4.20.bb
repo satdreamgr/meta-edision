@@ -5,9 +5,13 @@ SRC_URI = "${KERNELORG_MIRROR}/linux/kernel/v4.x/linux-${PV}.tar.xz;name=kernel 
 	https://github.com/edision-open/edision-kernel/releases/download/v${PV}/edision-kernel-${PV}.patch.xz;apply=yes;name=kernelpatch \
 	file://defconfig \
 	file://findkerneldevice.py \
+	file://0001-Add-support-for-TBS5980-and-TBS5925.patch \
 	"
 
 COMPATIBLE_MACHINE = "osmio4k"
+
+inherit machine_kernel_pr
+MACHINE_KERNEL_PR = "r1"
 
 SRC_URI[kernel.md5sum] = "d39dd4ba2d5861c54b90d49be19eaf31"
 SRC_URI[kernel.sha256sum] = "ad0823183522e743972382df0aa08fb5ae3077f662b125f1e599b0b2aaa12438"
