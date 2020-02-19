@@ -17,7 +17,7 @@ SRC_URI[kernel.sha256sum] = "a6fbd4ee903c128367892c2393ee0d9657b6ed3ea90016d4dc6
 SRC_URI[kernelpatch.md5sum] = "15f0a9a28bccdb8c627b287981e21ea5"
 SRC_URI[kernelpatch.sha256sum] = "afd1439da1828b63a3040a642ddc9323c99bd7140ecfc0763c836436d61f545d"
 
-FILES_kernel-image = "${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE}* ${KERNEL_IMAGEDEST}/findkerneldevice.py"
+FILES_${KERNEL_PACKAGE_NAME}-image = "${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE}* ${KERNEL_IMAGEDEST}/findkerneldevice.py"
 
 do_shared_workdir_append() {
 	unset CFLAGS CPPFLAGS CXXFLAGS LDFLAGS

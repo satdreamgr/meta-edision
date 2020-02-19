@@ -1,3 +1,3 @@
 DEFAULTTUNE = "aarch64"
 
-require conf/machine/include/arm/arch-armv8.inc
+require conf/machine/include/arm/arch-arm64.inc
