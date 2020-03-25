@@ -1,14 +1,29 @@
-From 44851626febaadaaf27dc0ba920d41a3d1a5c92a Mon Sep 17 00:00:00 2001
+From 445fb7a1e997c2747b430fb3661e9f48fcde796b Mon Sep 17 00:00:00 2001
 From: Athanasios Oikonomou <athoik@gmail.com>
 Date: Thu, 31 Jan 2019 23:19:12 +0200
 Subject: [PATCH] Add support for TBS5980 and TBS5925
 
+---
+ drivers/media/dvb-frontends/stv090x.c     | 378 +++++++++-----
+ drivers/media/dvb-frontends/stv090x.h     |   2 +
+ drivers/media/dvb-frontends/stv090x_reg.h |  16 +
+ drivers/media/usb/dvb-usb/Kconfig         |  18 +
+ drivers/media/usb/dvb-usb/Makefile        |   6 +
+ drivers/media/usb/dvb-usb/tbs-qbox2ci.c   | 792 ++++++++++++++++++++++++++++++
+ drivers/media/usb/dvb-usb/tbs-qbox2ci.h   |   8 +
+ drivers/media/usb/dvb-usb/tbs5925.c       | 473 ++++++++++++++++++
+ drivers/media/usb/dvb-usb/tbs5925.h       |   8 +
+ 9 files changed, 1573 insertions(+), 128 deletions(-)
+ create mode 100644 drivers/media/usb/dvb-usb/tbs-qbox2ci.c
+ create mode 100644 drivers/media/usb/dvb-usb/tbs-qbox2ci.h
+ create mode 100644 drivers/media/usb/dvb-usb/tbs5925.c
+ create mode 100644 drivers/media/usb/dvb-usb/tbs5925.h
 
 diff --git a/drivers/media/dvb-frontends/stv090x.c b/drivers/media/dvb-frontends/stv090x.c
-index a0622bb..6d5bbf8 100644
+index 90d2413..af33ad8 100644
 --- a/drivers/media/dvb-frontends/stv090x.c
 +++ b/drivers/media/dvb-frontends/stv090x.c
-@@ -41,6 +41,10 @@
+@@ -29,6 +29,10 @@
  static unsigned int verbose;
  module_param(verbose, int, 0644);
  
@@ -19,7 +34,7 @@ index a0622bb..6d5bbf8 100644
  /* internal params node */
  struct stv090x_dev {
  	/* pointer for internal params, one for each pair of demods */
-@@ -3449,7 +3453,7 @@ static int stv090x_set_mis(struct stv090x_state *state, int mis)
+@@ -3437,7 +3441,7 @@ static int stv090x_set_mis(struct stv090x_state *state, int mis)
  {
  	u32 reg;
  
@@ -28,7 +43,7 @@ index a0622bb..6d5bbf8 100644
  		dprintk(FE_DEBUG, 1, "Disable MIS filtering");
  		reg = STV090x_READ_DEMOD(state, PDELCTRL1);
  		STV090x_SETFIELD_Px(reg, FILTER_EN_FIELD, 0x00);
-@@ -3521,109 +3525,6 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
+@@ -3509,109 +3513,6 @@ static enum dvbfe_search stv090x_search(struct dvb_frontend *fe)
  	return DVBFE_ALGO_SEARCH_ERROR;
  }
  
@@ -138,7 +153,7 @@ index a0622bb..6d5bbf8 100644
  static int stv090x_table_lookup(const struct stv090x_tab *tab, int max, int val)
  {
  	int res = 0;
-@@ -3660,12 +3561,13 @@ static int stv090x_table_lookup(const struct stv090x_tab *tab, int max, int val)
+@@ -3648,12 +3549,13 @@ static int stv090x_table_lookup(const struct stv090x_tab *tab, int max, int val)
  	return res;
  }
  
@@ -154,7 +169,7 @@ index a0622bb..6d5bbf8 100644
  
  	reg = STV090x_READ_DEMOD(state, AGCIQIN1);
  	agc_1 = STV090x_GETFIELD_Px(reg, AGCIQ_VALUE_FIELD);
-@@ -3673,25 +3575,27 @@ static int stv090x_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
+@@ -3661,25 +3563,27 @@ static int stv090x_read_signal_strength(struct dvb_frontend *fe, u16 *strength)
  	agc_0 = STV090x_GETFIELD_Px(reg, AGCIQ_VALUE_FIELD);
  	agc = MAKEWORD16(agc_1, agc_0);
  
@@ -190,7 +205,7 @@ index a0622bb..6d5bbf8 100644
  
  	switch (state->delsys) {
  	case STV090x_DVBS2:
-@@ -3708,13 +3612,8 @@ static int stv090x_read_cnr(struct dvb_frontend *fe, u16 *cnr)
+@@ -3696,13 +3600,8 @@ static int stv090x_read_cnr(struct dvb_frontend *fe, u16 *cnr)
  				msleep(1);
  			}
  			val /= 16;
@@ -206,7 +221,7 @@ index a0622bb..6d5bbf8 100644
  		}
  		break;
  
-@@ -3733,17 +3632,195 @@ static int stv090x_read_cnr(struct dvb_frontend *fe, u16 *cnr)
+@@ -3721,17 +3620,195 @@ static int stv090x_read_cnr(struct dvb_frontend *fe, u16 *cnr)
  				msleep(1);
  			}
  			val /= 16;
@@ -407,7 +422,7 @@ index a0622bb..6d5bbf8 100644
  	return 0;
  }
  
-@@ -3922,6 +3999,9 @@ static int stv090x_sleep(struct dvb_frontend *fe)
+@@ -3910,6 +3987,9 @@ static int stv090x_sleep(struct dvb_frontend *fe)
  	u32 reg;
  	u8 full_standby = 0;
  
@@ -417,7 +432,7 @@ index a0622bb..6d5bbf8 100644
  	if (stv090x_i2c_gate_ctrl(state, 1) < 0)
  		goto err;
  
-@@ -4153,6 +4233,9 @@ static void stv090x_release(struct dvb_frontend *fe)
+@@ -4141,6 +4221,9 @@ static void stv090x_release(struct dvb_frontend *fe)
  {
  	struct stv090x_state *state = fe->demodulator_priv;
  
@@ -427,7 +442,7 @@ index a0622bb..6d5bbf8 100644
  	state->internal->num_used--;
  	if (state->internal->num_used <= 0) {
  
-@@ -4557,6 +4640,30 @@ static int stv0900_set_tspath(struct stv090x_state *state)
+@@ -4545,6 +4628,30 @@ static int stv0900_set_tspath(struct stv090x_state *state)
  			goto err;
  	}
  
@@ -458,7 +473,7 @@ index a0622bb..6d5bbf8 100644
  	reg = stv090x_read_reg(state, STV090x_P2_TSCFGH);
  	STV090x_SETFIELD_Px(reg, RST_HWARE_FIELD, 0x01);
  	if (stv090x_write_reg(state, STV090x_P2_TSCFGH, reg) < 0)
-@@ -4680,6 +4787,20 @@ static int stv0903_set_tspath(struct stv090x_state *state)
+@@ -4668,6 +4775,20 @@ static int stv0903_set_tspath(struct stv090x_state *state)
  			goto err;
  	}
  
@@ -479,7 +494,7 @@ index a0622bb..6d5bbf8 100644
  	reg = stv090x_read_reg(state, STV090x_P1_TSCFGH);
  	STV090x_SETFIELD_Px(reg, RST_HWARE_FIELD, 0x01);
  	if (stv090x_write_reg(state, STV090x_P1_TSCFGH, reg) < 0)
-@@ -4928,9 +5049,10 @@ static const struct dvb_frontend_ops stv090x_ops = {
+@@ -4976,9 +5097,10 @@ static const struct dvb_frontend_ops stv090x_ops = {
  
  	.search				= stv090x_search,
  	.read_status			= stv090x_read_status,
@@ -491,12 +506,12 @@ index a0622bb..6d5bbf8 100644
 +	.read_ucblocks			= stv090x_read_ucblocks,
  };
  
- 
+ static struct dvb_frontend *stv090x_get_dvb_frontend(struct i2c_client *client)
 diff --git a/drivers/media/dvb-frontends/stv090x.h b/drivers/media/dvb-frontends/stv090x.h
-index 012e55e..afb2003 100644
+index 89f45d9..5ac15e4 100644
 --- a/drivers/media/dvb-frontends/stv090x.h
 +++ b/drivers/media/dvb-frontends/stv090x.h
-@@ -89,6 +89,8 @@ struct stv090x_config {
+@@ -78,6 +78,8 @@ struct stv090x_config {
  
  	bool diseqc_envelope_mode;
  
@@ -506,10 +521,10 @@ index 012e55e..afb2003 100644
  	int (*tuner_sleep)(struct dvb_frontend *fe);
  	int (*tuner_set_mode)(struct dvb_frontend *fe, enum tuner_mode mode);
 diff --git a/drivers/media/dvb-frontends/stv090x_reg.h b/drivers/media/dvb-frontends/stv090x_reg.h
-index 93741ee..c1dac9c 100644
+index 7fb2bb6..25a8985 100644
 --- a/drivers/media/dvb-frontends/stv090x_reg.h
 +++ b/drivers/media/dvb-frontends/stv090x_reg.h
-@@ -2104,6 +2104,14 @@
+@@ -2092,6 +2092,14 @@
  #define STV090x_WIDTH_Px_TSDIL_ON_FIELD			1
  #define STV090x_OFFST_Px_TSRS_ON_FIELD			5
  #define STV090x_WIDTH_Px_TSRS_ON_FIELD			1
@@ -524,7 +539,7 @@ index 93741ee..c1dac9c 100644
  
  #define STV090x_Px_TSCFGH(__x)				(0xF572 - (__x - 1) * 0x200)
  #define STV090x_P1_TSCFGH				STV090x_Px_TSCFGH(1)
-@@ -2147,6 +2155,14 @@
+@@ -2135,6 +2143,14 @@
  #define STV090x_OFFST_Px_TSFIFO_DPUNACT_FIELD		1
  #define STV090x_WIDTH_Px_TSFIFO_DPUNACT_FIELD		1
  
@@ -540,10 +555,10 @@ index 93741ee..c1dac9c 100644
  #define STV090x_P1_TSINSDELH				STV090x_Px_TSINSDELH(1)
  #define STV090x_P2_TSINSDELH				STV090x_Px_TSINSDELH(2)
 diff --git a/drivers/media/usb/dvb-usb/Kconfig b/drivers/media/usb/dvb-usb/Kconfig
-index 513df95..42bd892 100644
+index 1a3e5f9..f8a9149 100644
 --- a/drivers/media/usb/dvb-usb/Kconfig
 +++ b/drivers/media/usb/dvb-usb/Kconfig
-@@ -327,3 +327,21 @@ config DVB_USB_TECHNISAT_USB2
+@@ -340,3 +340,21 @@ config DVB_USB_TECHNISAT_USB2
  	select DVB_STV6110x if MEDIA_SUBDRV_AUTOSELECT
  	help
  	  Say Y here to support the Technisat USB2 DVB-S/S2 device
@@ -566,10 +581,10 @@ index 513df95..42bd892 100644
 +	help
 +	  Say Y here to support the TurboSight TBS5925 DVB-S USB2.0 receivers
 diff --git a/drivers/media/usb/dvb-usb/Makefile b/drivers/media/usb/dvb-usb/Makefile
-index 407d90c..9121df7 100644
+index 28e4806..5fa4db3 100644
 --- a/drivers/media/usb/dvb-usb/Makefile
 +++ b/drivers/media/usb/dvb-usb/Makefile
-@@ -77,6 +77,12 @@ obj-$(CONFIG_DVB_USB_AZ6027) += dvb-usb-az6027.o
+@@ -80,6 +80,12 @@ obj-$(CONFIG_DVB_USB_AZ6027) += dvb-usb-az6027.o
  dvb-usb-technisat-usb2-objs := technisat-usb2.o
  obj-$(CONFIG_DVB_USB_TECHNISAT_USB2) += dvb-usb-technisat-usb2.o
  
@@ -1887,6 +1902,3 @@ index 0000000..83278f5
 +
 +#define deb_xfer(args...) dprintk(dvb_usb_tbs5925_debug, 0x02, args)
 +#endif
--- 
-2.1.4
-
