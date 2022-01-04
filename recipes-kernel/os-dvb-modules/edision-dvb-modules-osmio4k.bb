@@ -1,10 +1,13 @@
-KV = "5.8.0"
-SRCDATE = "20200810"
-MODNAMES = "brcmstb-${MACHINE} ci avl6261 avl6862 si2183"
+KV = "5.15.0"
+SRCDATE = "20211103"
+MODNAMES = "brcmstb-${MACHINE} brcmstb-decoder ci avl6261 avl6862 si2183"
+
+RRECOMMENDS_${PN} += "linux-firmware-dvb-fe-avl62x1 linux-firmware-dvb-fe-avl68x2"
 
 require os-dvb-modules.inc
 
 COMPATIBLE_MACHINE = "osmio4k"
 
-SRC_URI[md5sum] = "b5f43202e15ace7aa1ea4d2f3f878576"
-SRC_URI[sha256sum] = "e76408c3a0cfa0c70c1a507aa4c9cf6ae906383744d1a03a26f94594b4cc2160"
+SRC_URI[md5sum] = "29a6e6be629e9ba71ba4f924986073ab"
+SRC_URI[sha256sum] = "569c828b37c952b1bca752a139d0073545335f73a00e4033433b33ca18b4fc71"
+

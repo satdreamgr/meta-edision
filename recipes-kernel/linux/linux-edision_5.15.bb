@@ -12,12 +12,22 @@ SRC_URI = "${KERNELORG_MIRROR}/linux/kernel/v5.x/linux-${PV}.tar.xz;name=kernel 
 
 COMPATIBLE_MACHINE = "osmini4k|osmio4k|osmio4kplus"
 
-SRC_URI[kernel.md5sum] = "0e5c4c15266218ef26c50fac0016095b"
-SRC_URI[kernel.sha256sum] = "e7f75186aa0642114af8f19d99559937300ca27acaf7451b36d4f9b0f85cf1f5"
-SRC_URI[kernelpatch.md5sum] = "c9c9c716fa8ad2674f8791fcf7991af8"
-SRC_URI[kernelpatch.sha256sum] = "6e9055de7beda40257b595b90dd0627decfd84ab0f757e70211d01e5fe661bd8"
+SRC_URI[kernel.md5sum] = "071d49ff4e020d58c04f9f3f76d3b594"
+SRC_URI[kernel.sha256sum] = "57b2cf6991910e3b67a1b3490022e8a0674b6965c74c12da1e99d138d1991ee8"
+SRC_URI[kernelpatch.md5sum] = "a216bc0580f69c604f0b1e6f9d1a261f"
+SRC_URI[kernelpatch.sha256sum] = "4b9ea4d6217769b91a270a917fa082d6f090d2d4aabb701d5b0ed9936309bdf3"
 
 FILES_${KERNEL_PACKAGE_NAME}-image = "${KERNEL_IMAGEDEST}/${KERNEL_IMAGETYPE}* ${KERNEL_IMAGEDEST}/findkerneldevice.py"
+
+do_compile_kernelmodules_append() {
+	# openembedded-core 0fc66a0b64953aae38d0124b57615fffaec8de52
+	if (grep -q -i -e '^CONFIG_MODULES=y$' ${B}/.config); then
+		# 5.10+ kernels have module.lds that we need to copy for external module builds
+		if [ -e "${B}/scripts/module.lds" ]; then
+			install -Dm 0644 ${B}/scripts/module.lds ${STAGING_KERNEL_BUILDDIR}/scripts/module.lds
+		fi
+	fi
+}
 
 kernel_do_install_append () {
 	install -d ${D}/${KERNEL_IMAGEDEST}

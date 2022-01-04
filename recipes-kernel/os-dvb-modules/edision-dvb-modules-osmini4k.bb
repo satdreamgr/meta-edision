@@ -1,10 +1,12 @@
-KV = "5.8.0"
-SRCDATE = "20200810"
+KV = "5.15.0"
+SRCDATE = "20211103"
 MODNAMES = "brcmstb-${MACHINE} ci avl6261 avl6862 si2183"
+
+RRECOMMENDS_${PN} += "linux-firmware-dvb-fe-avl62x1 linux-firmware-dvb-fe-avl68x2"
 
 require os-dvb-modules.inc
 
 COMPATIBLE_MACHINE = "osmini4k"
 
-SRC_URI[md5sum] = "c1d92310a8ece10ee752fd1f2ab1508a"
-SRC_URI[sha256sum] = "d80f34aef7ae6f8823febc0439aeb042398b5a9275c114d81f6518f77f9ade63"
+SRC_URI[md5sum] = "35207225373ea8ae105ba411aa17e8b5"
+SRC_URI[sha256sum] = "3e71e7f3533e7cf936663b4ca55b0d10cc0f1025482660e27ffcc849384ea852"
